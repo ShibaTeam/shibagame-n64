@@ -18,6 +18,13 @@ jobs:
     - name: Build Docker Image
       run:  docker build -t n64sdk ${{ github.workspace }}/scripts
     
+    - name: Generate N64 Header from Secrets
+      env: 
+        N64_HEADER: ${{ secrets.N64_HEADER }}
+      run: |
+        echo $env:N64_HEADER | base64 -d > ${{ github.workspace }}/src/header.bin
+        sha1sum ${{ github.workspace }}/src/header.bin
+        
     - name: Build
       run: docker run --name n64sdk-instance -v "${{ github.workspace }}":/opt/src n64sdk /opt/src/scripts/compile-docker.sh
 
