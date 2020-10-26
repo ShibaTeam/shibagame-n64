@@ -2,9 +2,9 @@ name: CI
     
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -16,10 +16,10 @@ jobs:
       continue-on-error: true
       
     - name: Build Docker Image
-      run:  docker build -t n64sdk ${{ github.workspace }}/scripts/docker
+      run:  docker build -t n64sdk ${{ github.workspace }}/scripts
     
     - name: Build
-      run: docker run --name n64sdk-instance -v "${{ github.workspace }}":/opt/src n64sdk /opt/src/scripts/docker/compile-docker.sh
+      run: docker run --name n64sdk-instance -v "${{ github.workspace }}":/opt/src n64sdk /opt/src/scripts/compile-docker.sh
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v2
