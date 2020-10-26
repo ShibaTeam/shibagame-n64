@@ -22,7 +22,7 @@ jobs:
       env: 
         N64_HEADER: ${{ secrets.N64_HEADER }}
       run: |
-        echo $env:N64_HEADER | base64 -d > ${{ github.workspace }}/src/header.bin
+        echo $N64_HEADER | base64 -d > ${{ github.workspace }}/src/header.bin
         sha1sum ${{ github.workspace }}/src/header.bin
         
     - name: Build
