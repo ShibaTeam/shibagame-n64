@@ -1,0 +1,61 @@
+name: CI
+    
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: satackey/action-docker-layer-caching@v0.0.8
+      continue-on-error: true
+      
+    - name: Build Docker Image
+      run:  docker build -t n64sdk ${{ github.workspace }}/scripts/docker
+    
+    - name: Build
+      run: docker run --name n64sdk-instance -v "${{ github.workspace }}":/opt/src n64sdk /opt/src/scripts/docker/compile-docker.sh
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: Shibagame Build ${{ github.run_number }}
+        path: build/*.n64
+
+    - name: Cleanup
+      run: docker rm n64sdk-instance
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    if: "false"
+    steps:
+      - name: Download game artifacts
+        uses: actions/download-artifact@v2
+
+      - name: Get Test Prerequisites
+        run: |
+          sudo apt update
+          sudo apt install -y xvfb wget unzip
+          wget https://cen64.com/uploads/stable/cen64-debian9-x86_64
+          wget https://www.dropbox.com/sh/i0klk7ytso6homa/AACL4NiXIauDH6uRbdwBL7mha/N64%20BIOS.zip?dl=0
+          
+          
+      - name: Setup Test Env
+        run: |
+          unzip *.zip
+          chmod +x cen64-debian9-x86_64
+          Xvfb :100 &
+          export DISPLAY=:100
+
+      # Eventually change these to check for a BOOT SUCCESS case in conout rather than
+      # Just checking if it crashed or not
+      - name: test-cen64
+        run: timeout 15 cen64-debian9-x86_64 pifdata.bin SHIBAGAME.n64
+        
+      #- name: test-mupen64
+      #  run: timeou5 15 mupen64plus SHIBAGAME.n64
